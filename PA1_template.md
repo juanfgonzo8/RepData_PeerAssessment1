@@ -11,7 +11,8 @@ output:
 The data for the analysis is loaded from the original zip file.  
 The classes are set in the read.csv function to avoid further formatting.  
 
-```{r dataload, echo = TRUE}
+
+```r
 data <- read.csv(unz("activity.zip", "activity.csv"),
                   colClasses = c("numeric", "Date", "numeric"))
 ```
@@ -22,52 +23,83 @@ First, we use tapply to get the number of steps taken each day. For now, we
 ignore the missing values.  
 Then, we used ggplot2's qplot to create a simple histogram.  
 
-```{r mean1, echo = TRUE}
+
+```r
 stepsday <- tapply(data$steps, data$date, sum, na.rm = TRUE)
 library(ggplot2)
 qplot(stepsday, xlab = "Steps taken per day", bins = 40)
 ```
 
+![](PA1_template_files/figure-html/mean1-1.png)<!-- -->
+
 Now, we use simple calls to know the mean and median of the total steps per day.  
 The mean is:  
 
-```{r mean2, echo = TRUE}
+
+```r
 mean(stepsday)
+```
+
+```
+## [1] 9354.23
 ```
 
 And the median is:  
 
-```{r mean3, echo = TRUE}
+
+```r
 median(stepsday)
+```
+
+```
+## [1] 10395
 ```
 
 ## What is the average daily activity pattern?
 
-```{r pattern1, echo = TRUE}
+
+```r
 activ <- tapply(data$steps, data$interval, mean, na.rm = TRUE)
 qplot(as.numeric(names(activ)), activ, geom = "line", xlab = "Interval",
       ylab = "Number of Steps by Interval")
 ```
 
+![](PA1_template_files/figure-html/pattern1-1.png)<!-- -->
+
 Now, we look for the interval that has the most average steps.  
 First, the ID of that interval is:  
 
-```{r pattern2, echo = TRUE}
+
+```r
 names(activ[which(activ == max(activ))])
+```
+
+```
+## [1] "835"
 ```
 
 And, the average number of steps for that interval is:  
 
-```{r pattern3, echo = TRUE}
+
+```r
 max(activ)
+```
+
+```
+## [1] 206.1698
 ```
 
 ## Imputing missing values
 
 The number of missing values in the data set is:  
 
-```{r missing1, echo = TRUE}
+
+```r
 sum(is.na(data$steps))
+```
+
+```
+## [1] 2304
 ```
 
 Now, we will use the average of values each interval to fill the spots with NAs.  
@@ -76,7 +108,8 @@ observation and sees if there is a missing values. Then, if there is a missing
 value, it will fill that position with the average value for that interval.  
 The new data is then used to create a new data set.
 
-```{r missing2, echo = TRUE}
+
+```r
 rmNA <- function(x, i, avg) {
     if(is.na(x)) {
         x <- avg[as.character(i)]
@@ -91,15 +124,25 @@ new_data$steps <- new_st
 Finally, we use the same procedure as before to calculate the mean and median.
 The new mean is:  
 
-```{r missing3, echo = TRUE}
+
+```r
 newstepsd <- tapply(new_data$steps, new_data$date, sum)
 mean(newstepsd)
 ```
 
+```
+## [1] 10766.19
+```
+
 And the new median is:  
 
-```{r missing4, echo = TRUE}
+
+```r
 median(newstepsd)
+```
+
+```
+## [1] 10766.19
 ```
 
 There was a noticeable increase in both the mean and median due to the removal 
@@ -112,7 +155,8 @@ weekend day.
 To do this, we use the weekdays function and use boolean operations to know the 
 factor value.
 
-```{r weekend1, echo = TRUE}
+
+```r
 wkds <- weekdays(new_data$date)
 wknd <- wkds == "Saturday" | wkds == "Sunday"
 wknd <- factor(wknd, levels = c(TRUE, FALSE), labels = c("weekend", "weekday"))
@@ -121,7 +165,8 @@ wknd <- factor(wknd, levels = c(TRUE, FALSE), labels = c("weekend", "weekday"))
 Now, we apply the same operation we used in the previous step to get the mean 
 of all the intervals and then we plot the result using qplot.
 
-```{r weekend2, echo = TRUE}
+
+```r
 steps_wkds <- tapply(new_data[which(wknd == "weekday") ,]$steps,
                      new_data[which(wknd == "weekday") ,]$interval, mean)
 steps_wknd <- tapply(new_data[which(wknd == "weekend") ,]$steps,
@@ -133,5 +178,7 @@ graph_data <- data.frame(steps = c(steps_wkds, steps_wknd),
 qplot(as.numeric(interval), steps, data = graph_data, facets = week~.,
       geom = "line", xlab = "Interval", ylab = "Number of steps")
 ```
+
+![](PA1_template_files/figure-html/weekend2-1.png)<!-- -->
 
 Both of the final graphs have a similar behavior to the original plot.
